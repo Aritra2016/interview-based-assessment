@@ -1,0 +1,318 @@
+Q-01) Create a Java program that uses Hibernate to connect to a MySQL database and retrieve data from a table. The program should use Hibernate to map the table to a
+Java object and then display the data on the console.
+
+<!DOCTYPE hibernate-configuration PUBLIC    
+        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"    
+        "https://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<!-- Update the properties with your MySQL database connection details -->
+<hibernate-configuration>
+    <session-factory>
+       
+    <property name="hibernate.connection.driver_class">com.mysql.cj.jdbc.Driver</property>
+       
+		<property name="hibernate.connection.url">jdbc:mysql://localhost:3306/octbatch</property>
+    
+		<property name="hibernate.connection.username">root</property>
+    
+		<property name="hibernate.connection.password">root123</property>
+    
+		<property name="hibernate.dialect">org.hibernate.dialect.MySQL8Dialect</property>
+		
+		<property name="hibernate.show_sql">true</property>
+	
+		<property name="hibernate.format_sql">true</property>
+		
+		<property name="hibernate.hbm2ddl.auto">update</property>
+	
+    <mapping class="in.ineuron.model.Student"/>
+       
+       
+    </session-factory>
+</hibernate-configuration>
+
+
+
+
+import javax.persistence.*;
+
+@Entity
+@DynamicInsert(value = true)
+public class Student {
+
+	@Id
+
+	private Integer sid;
+
+	private String sName;
+
+	private String sAddres;
+
+	private Integer sAge;
+
+	public Student() {
+		System.out.println("zero argument constructors are used by Hibernate Internally.");
+	}
+
+	public Integer getSid() {
+		return sid;
+	}
+
+	public void setSid(Integer sid) {
+		this.sid = sid;
+	}
+
+	public String getsName() {
+		return sName;
+	}
+
+	public void setsName(String sName) {
+		this.sName = sName;
+	}
+
+	public String getsAddres() {
+		return sAddres;
+	}
+
+	public void setsAddres(String sAddres) {
+		this.sAddres = sAddres;
+	}
+
+	public Integer getsAge() {
+		return sAge;
+	}
+
+	public void setsAge(Integer sAge) {
+		this.sAge = sAge;
+	}
+
+	@Override
+	public String toString() {
+		return "Student [sid=" + sid + ", sName=" + sName + ", sAddres=" + sAddres + ", sAge=" + sAge + "]";
+	}
+}
+
+
+
+
+
+package com.example.blog;
+
+import com.example.blog.models.YourEntityClass;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
+
+import java.util.List;
+
+public class HibernateDemo {
+    public static void main(String[] args) {
+        // Create a Hibernate SessionFactory
+        SessionFactory sessionFactory = new Configuration()
+                .configure("hibernate.cfg.xml")
+                .buildSessionFactory();
+
+        // Create a Session
+        Session session = sessionFactory.getCurrentSession();
+
+        try {
+            // Begin the transaction
+            session.beginTransaction();
+
+            // Retrieve data from the table
+            List<YourEntityClass> entities = session.createQuery("FROM YourEntityClass").getResultList();
+
+            // Display the data
+            for (YourEntityClass entity : entities) {
+                System.out.println("ID: " + entity.getId());
+                System.out.println("Column Name: " + entity.getColumnName());
+                System.out.println("-----------------------");
+            }
+
+            // Commit the transaction
+            session.getTransaction().commit();
+        } catch (Exception e) {
+            // Handle any exceptions
+            e.printStackTrace();
+        } finally {
+            // Close the session and the SessionFactory
+            session.close();
+            sessionFactory.close();
+        }
+    }
+
+
+}
+
+
+
+
+Q-19) Create a Java program that uses Hibernate to insert data into a MySQL database table. The program should use Hibernate to map the table to a Java object and then
+insert the data into the table. After inserting the data, the program should retrieve it from the database and display it on the console.
+
+
+<!DOCTYPE hibernate-configuration PUBLIC    
+        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"    
+        "https://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<!-- Update the properties with your MySQL database connection details -->
+<hibernate-configuration>
+    <session-factory>
+       
+    <property name="hibernate.connection.driver_class">com.mysql.cj.jdbc.Driver</property>
+       
+		<property name="hibernate.connection.url">jdbc:mysql://localhost:3306/octbatch</property>
+    
+		<property name="hibernate.connection.username">root</property>
+    
+		<property name="hibernate.connection.password">root123</property>
+    
+		<property name="hibernate.dialect">org.hibernate.dialect.MySQL8Dialect</property>
+		
+		<property name="hibernate.show_sql">true</property>
+	
+		<property name="hibernate.format_sql">true</property>
+		
+		<property name="hibernate.hbm2ddl.auto">update</property>
+	
+    <mapping class="in.ineuron.model.Student"/>
+       
+       
+    </session-factory>
+</hibernate-configuration>
+
+import javax.persistence.*;
+
+@Entity
+@DynamicInsert(value = true)
+public class Student {
+
+	@Id
+
+	private Integer sid;
+
+	private String sName;
+
+	private String sAddres;
+
+	private Integer sAge;
+
+	public Student() {
+		System.out.println("zero argument constructors are used by Hibernate Internally.");
+	}
+
+	public Integer getSid() {
+		return sid;
+	}
+
+	public void setSid(Integer sid) {
+		this.sid = sid;
+	}
+
+	public String getsName() {
+		return sName;
+	}
+
+	public void setsName(String sName) {
+		this.sName = sName;
+	}
+
+	public String getsAddres() {
+		return sAddres;
+	}
+
+	public void setsAddres(String sAddres) {
+		this.sAddres = sAddres;
+	}
+
+	public Integer getsAge() {
+		return sAge;
+	}
+
+	public void setsAge(Integer sAge) {
+		this.sAge = sAge;
+	}
+
+	@Override
+	public String toString() {
+		return "Student [sid=" + sid + ", sName=" + sName + ", sAddres=" + sAddres + ", sAge=" + sAge + "]";
+	}
+}
+
+
+package com.example.blog;
+
+import com.example.blog.models.YourEntityClass;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
+
+import java.util.List;
+
+public class HibernateDemo {
+    public static void main(String[] args) {
+        // Create a Hibernate SessionFactory
+        SessionFactory sessionFactory = new Configuration()
+                .configure("hibernate.cfg.xml")
+                .buildSessionFactory();
+
+        // Create a Session
+        Session session = sessionFactory.getCurrentSession();
+
+        try {
+            // Create and populate an instance of the entity class
+            YourEntityClass entity = new YourEntityClass();
+            entity.setColumnName("Sample Data");
+
+            // Begin the transaction
+            session.beginTransaction();
+
+            // Save the entity to the database
+            session.save(entity);
+
+            // Commit the transaction
+            session.getTransaction().commit();
+
+            // Retrieve the inserted data from the database
+            session = sessionFactory.getCurrentSession();
+            session.beginTransaction();
+
+            List<YourEntityClass> entities = session.createQuery("FROM YourEntityClass").getResultList();
+
+            // Display the retrieved data
+            for (YourEntityClass retrievedEntity : entities) {
+                System.out.println("ID: " + retrievedEntity.getId());
+                System.out.println("Column Name: " + retrievedEntity.getColumnName());
+                System.out.println("-----------------------");
+            }
+
+            // Commit the transaction
+            session.getTransaction().commit();
+        } catch (Exception e) {
+            // Handle any exceptions
+            e.printStackTrace();
+        } finally {
+            // Close the session and the SessionFactory
+            session.close();
+            sessionFactory.close();
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
