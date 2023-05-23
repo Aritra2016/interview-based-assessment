@@ -1,0 +1,86 @@
+Abstract Class:
+
+An abstract class in Java is declared using the abstract keyword.
+
+It can have both abstract and non-abstract methods.
+
+It can contain member variables, constructors, and regular methods.
+
+It allows code reuse and provides a common base for its subclasses.
+
+It cannot be instantiated directly; it must be subclassed.
+
+Subclasses of an abstract class inherit its properties and can override its methods.
+
+Code-01===
+
+abstract class Animal {
+    protected String name;
+
+    public Animal(String name) {
+        this.name = name;
+    }
+
+    public abstract void sound();
+
+    public void sleep() {
+        System.out.println(name + " is sleeping.");
+    }
+}
+
+class Dog extends Animal {
+    public Dog(String name) {
+        super(name);
+    }
+
+    public void sound() {
+        System.out.println("Dog barks!");
+    }
+}
+
+public class AbstractClassExample {
+    public static void main(String[] args) {
+        Animal animal = new Dog("Tommy");
+        animal.sound();
+        animal.sleep();
+    }
+}
+
+
+Interface:
+
+An interface in Java is declared using the interface keyword.
+
+It contains only abstract method declarations, constants, and default/static methods.
+
+It defines a contract that classes implementing the interface must adhere to.
+
+It supports multiple inheritance, allowing a class to implement multiple interfaces.
+
+It provides a way to achieve abstraction and polymorphism.
+
+
+Ex==>
+
+interface Animal {
+    void sound();
+    void sleep();
+}
+
+class Dog implements Animal {
+    public void sound() {
+        System.out.println("Dog barks!");
+    }
+
+    public void sleep() {
+        System.out.println("Dog is sleeping.");
+    }
+}
+
+public class InterfaceExample {
+    public static void main(String[] args) {
+        Animal animal = new Dog();
+        animal.sound();
+        animal.sleep();
+    }
+}
