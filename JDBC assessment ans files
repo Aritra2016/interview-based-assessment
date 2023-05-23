@@ -1,0 +1,529 @@
+Q-11) Write a Java program that connects to a MySQL database using JDBC. The program should read data from a table and display the results in the console.
+
+
+import java.sql.*;
+
+public class DatabaseConnectionExample {
+    public static void main(String[] args) {
+        // Database connection parameters
+        String url = "jdbc:mysql://localhost:3306/mydatabase"; // Replace "mydatabase" with your database name
+        String username = "your-username"; // Replace with your MySQL username
+        String password = "your-password"; // Replace with your MySQL password
+
+        // SQL query to retrieve data from a table
+        String query = "SELECT * FROM mytable"; // Replace "mytable" with your table name
+
+        try (Connection connection = DriverManager.getConnection(url, username, password);
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(query)) {
+
+            // Loop through the result set and display the data
+            while (resultSet.next()) {
+                int id = resultSet.getInt("id"); // Assuming "id" is the column name in your table
+                String name = resultSet.getString("name"); // Assuming "name" is the column name in your table
+
+                System.out.println("ID: " + id + ", Name: " + name);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+
+
+
+Q-12)  Write a Java program that uses JDBC to implement a simple CRUD (create, read, update, delete) application. The program should allow users to add, view, update,
+and delete records in a MySQL database table.
+
+import java.sql.*;
+import java.util.Scanner;
+
+public class CRUDApplication {
+    private static final String url = "jdbc:mysql://localhost:3306/mydatabase"; // Replace "mydatabase" with your database name
+    private static final String username = "your-username"; // Replace with your MySQL username
+    private static final String password = "your-password"; // Replace with your MySQL password
+
+    public static void main(String[] args) {
+        try (Connection connection = DriverManager.getConnection(url, username, password);
+             Scanner scanner = new Scanner(System.in)) {
+
+            while (true) {
+                System.out.println("----- CRUD Application -----");
+                System.out.println("1. Add record");
+                System.out.println("2. View records");
+                System.out.println("3. Update record");
+                System.out.println("4. Delete record");
+                System.out.println("5. Exit");
+                System.out.print("Enter your choice: ");
+                int choice = scanner.nextInt();
+                scanner.nextLine(); // Consume the newline character
+
+                switch (choice) {
+                    case 1:
+                        addRecord(connection, scanner);
+                        break;
+                    case 2:
+                        viewRecords(connection);
+                        break;
+                    case 3:
+                        updateRecord(connection, scanner);
+                        break;
+                    case 4:
+                        deleteRecord(connection, scanner);
+                        break;
+                    case 5:
+                        System.exit(0);
+                        break;
+                    default:
+                        System.out.println("Invalid choice!");
+                        break;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void addRecord(Connection connection, Scanner scanner) throws SQLException {
+        System.out.println("----- Add Record -----");
+        System.out.print("Enter name: ");
+        String name = scanner.nextLine();
+        System.out.print("Enter age: ");
+        int age = scanner.nextInt();
+        scanner.nextLine(); // Consume the newline character
+
+        String query = "INSERT INTO mytable (name, age) VALUES (?, ?)";
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, name);
+            statement.setInt(2, age);
+            statement.executeUpdate();
+            System.out.println("Record added successfully!");
+        }
+    }
+
+    private static void viewRecords(Connection connection) throws SQLException {
+        System.out.println("----- View Records -----");
+        String query = "SELECT * FROM mytable";
+        try (Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(query)) {
+
+            while (resultSet.next()) {
+                int id = resultSet.getInt("id");
+                String name = resultSet.getString("name");
+                int age = resultSet.getInt("age");
+
+                System.out.println("ID: " + id + ", Name: " + name + ", Age: " + age);
+            }
+        }
+    }
+
+    private static void updateRecord(Connection connection, Scanner scanner) throws SQLException {
+        System.out.println("----- Update Record -----");
+        System.out.print("Enter ID of the record to update: ");
+        int id = scanner.nextInt();
+        scanner.nextLine(); // Consume the newline character
+        System.out.print("Enter new name: ");
+        String name = scanner.nextLine();
+        System.out.print("Enter new age: ");
+        int age = scanner.nextInt();
+        scanner.nextLine(); // Consume the newline character
+
+        String query = "UPDATE mytable SET name = ?, age = ? WHERE id = ?";
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, name);
+            statement.setInt(2, age);
+            statement.setInt(3, id);
+            int rowsAffected = statement.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println
+
+
+
+
+Q-13) Create a Java program that connects to a PostgreSQL database and executes a batch update. The program should read the input data from a file and insert it into the
+database using JDBC batch updates.
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+
+public class BatchUpdateExample {
+    private static final String url = "jdbc:postgresql://localhost:5432/mydatabase"; // Replace "mydatabase" with your database name
+    private static final String username = "your-username"; // Replace with your PostgreSQL username
+    private static final String password = "your-password"; // Replace with your PostgreSQL password
+
+    public static void main(String[] args) {
+        String filePath = "data.txt"; // Replace with your input file path
+
+        try (Connection connection = DriverManager.getConnection(url, username, password)) {
+            // Enable batch processing
+            connection.setAutoCommit(false);
+
+            // Create a prepared statement with batch updates
+            String query = "INSERT INTO mytable (name, age) VALUES (?, ?)";
+            try (PreparedStatement statement = connection.prepareStatement(query)) {
+                BufferedReader reader = new BufferedReader(new FileReader(filePath));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    String[] data = line.split(",");
+                    String name = data[0];
+                    int age = Integer.parseInt(data[1]);
+
+                    // Add parameters to the batch
+                    statement.setString(1, name);
+                    statement.setInt(2, age);
+                    statement.addBatch();
+                }
+
+                // Execute the batch update
+                int[] updateCounts = statement.executeBatch();
+
+                // Commit the transaction
+                connection.commit();
+
+                System.out.println("Batch update executed successfully. Rows affected: " + updateCounts.length);
+            } catch (Exception e) {
+                // Rollback the transaction in case of an exception
+                connection.rollback();
+                e.printStackTrace();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+
+Q-14) Create a Java servlet that reads the name of the user from a form and displays a welcome message on the web page. The servlet should use the GET method to read
+the input data from the user.
+
+import java.io.IOException;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+public class WelcomeServlet extends HttpServlet {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String name = request.getParameter("name");
+
+        response.setContentType("text/html");
+        response.getWriter().println("<html><body>");
+        response.getWriter().println("<h1>Welcome, " + name + "!</h1>");
+        response.getWriter().println("</body></html>");
+    }
+}
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome Page</title>
+</head>
+<body>
+    <form action="welcome" method="GET">
+        <label for="name">Enter your name:</label>
+        <input type="text" id="name" name="name" required>
+        <br>
+        <input type="submit" value="Submit">
+    </form>
+</body>
+</html>
+
+
+
+Q-15)  Write a Java servlet that reads the data from a MySQL database table and displays it in an HTML table on the web page. The servlet should use JDBC to connect to the
+database and retrieve the data.
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+public class DataDisplayServlet extends HttpServlet {
+    private static final String url = "jdbc:mysql://localhost:3306/mydatabase"; // Replace "mydatabase" with your database name
+    private static final String username = "your-username"; // Replace with your MySQL username
+    private static final String password = "your-password"; // Replace with your MySQL password
+
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.setContentType("text/html");
+        PrintWriter out = response.getWriter();
+
+        try (Connection connection = DriverManager.getConnection(url, username, password);
+             Statement statement = connection.createStatement()) {
+
+            String query = "SELECT * FROM mytable"; // Replace "mytable" with your table name
+            ResultSet resultSet = statement.executeQuery(query);
+
+            out.println("<html><body>");
+            out.println("<table border='1'>");
+            out.println("<tr><th>ID</th><th>Name</th><th>Age</th></tr>");
+
+            while (resultSet.next()) {
+                int id = resultSet.getInt("id");
+                String name = resultSet.getString("name");
+                int age = resultSet.getInt("age");
+
+                out.println("<tr><td>" + id + "</td><td>" + name + "</td><td>" + age + "</td></tr>");
+            }
+
+            out.println("</table>");
+            out.println("</body></html>");
+
+            resultSet.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+
+
+Q-16) Create a Java servlet that uses session management to maintain the state of the user across multiple requests. The servlet should store the user's name in a session
+object and display it on multiple pages of the web application.
+
+
+import java.io.IOException;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+public class UserSessionServlet extends HttpServlet {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        HttpSession session = request.getSession();
+        String name = request.getParameter("name");
+
+        if (name != null && !name.isEmpty()) {
+            // Store the user's name in the session
+            session.setAttribute("username", name);
+        }
+
+        // Redirect to the home page
+        response.sendRedirect(request.getContextPath() + "/home");
+    }
+}
+
+public class HomePageServlet extends HttpServlet {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        HttpSession session = request.getSession();
+        String username = (String) session.getAttribute("username");
+
+        response.setContentType("text/html");
+        response.getWriter().println("<html><body>");
+        response.getWriter().println("<h1>Welcome, " + username + "!</h1>");
+        response.getWriter().println("<a href=\"" + request.getContextPath() + "/logout\">Logout</a>");
+        response.getWriter().println("</body></html>");
+    }
+}
+
+public class LogoutServlet extends HttpServlet {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        HttpSession session = request.getSession();
+        session.invalidate();
+
+        // Redirect to the login page or any other page
+        response.sendRedirect(request.getContextPath() + "/login.html");
+    }
+}
+
+
+
+
+
+Q-17) Create a web application that lets users create and view blog posts. The web application should use the MVC pattern, with servlets as controllers, JSPs as views,
+and a database as the model. Users should be able to create new blog posts by filling out a form that includes a title, description, and content. The web application
+should use a servlet to store the blog post data in the database. Users should also be able to view all the blog posts on a separate page, and the web application should
+use a servlet to retrieve the blog post data from the database and display it in a formatted way.
+
+
+
+
+CREATE DATABASE blog_app;
+
+
+
+CREATE TABLE blog_posts (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    title VARCHAR(255) NOT NULL,
+    description VARCHAR(255),
+    content TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+package com.example.blog.models;
+
+public class BlogPost {
+    private int id;
+    private String title;
+    private String description;
+    private String content;
+
+    // Constructors, getters, and setters
+
+    
+}
+
+package com.example.blog.models;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+public class BlogPostDAO {
+    private Connection connection;
+
+    // Constructor receiving the database connection
+    public BlogPostDAO(Connection connection) {
+        this.connection = connection;
+    }
+
+    // Method to insert a new blog post into the database
+    public void insertBlogPost(BlogPost blogPost) throws SQLException {
+        String sql = "INSERT INTO blog_posts (title, description, content) VALUES (?, ?, ?)";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, blogPost.getTitle());
+            statement.setString(2, blogPost.getDescription());
+            statement.setString(3, blogPost.getContent());
+            statement.executeUpdate();
+        }
+    }
+
+    
+    public List<BlogPost> getAllBlogPosts() throws SQLException {
+        List<BlogPost> blogPosts = new ArrayList<>();
+        String sql = "SELECT * FROM blog_posts";
+        try (PreparedStatement statement = connection.prepareStatement(sql);
+             ResultSet resultSet = statement.executeQuery()) {
+            while (resultSet.next()) {
+                int id = resultSet.getInt("id");
+                String title = resultSet.getString("title");
+                String description = resultSet.getString("description");
+                String content = resultSet.getString("content");
+
+                BlogPost blogPost = new BlogPost();
+                blogPost.setId(id);
+                blogPost.setTitle(title);
+                blogPost.setDescription(description);
+                blogPost.setContent(content);
+
+                blogPosts.add(blogPost);
+            }
+        }
+        return blogPosts;
+    }
+}
+
+package com.example.blog.controllers;
+
+import com.example.blog.models.BlogPost;
+import com.example.blog.models.BlogPostDAO;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.sql.SQLException;
+
+public class CreateBlogPostServlet extends HttpServlet {
+    private BlogPostDAO blogPostDAO;
+
+    @Override
+    public void init() throws ServletException {
+        // Initialize the DAO with the database connection
+        // Here, you can establish the database connection using JDBC or a connection pool
+        // For simplicity, let's assume you have a connection object called "connection"
+        blogPostDAO = new BlogPostDAO(connection);
+    }
+
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String title = request.getParameter("title");
+        String description = request.getParameter("description");
+        String content = request.getParameter("content");
+
+        BlogPost blogPost = new BlogPost();
+        blogPost.setTitle(title);
+        blogPost.setDescription(description);
+        blogPost.setContent(content);
+
+        try {
+            // Insert the blog post into the database
+            blogPostDAO.insertBlogPost(blogPost);
+            response.sendRedirect(request.getContextPath() + "/blogposts");
+        } catch (SQLException e) {
+            // Handle any exceptions appropriately
+            e.printStackTrace();
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        }
+    }
+}
+
+package com.example.blog.controllers;
+
+import com.example.blog.models.BlogPost;
+import com.example.blog.models.BlogPostDAO;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.List;
+
+public class ViewAllBlogPostsServlet extends HttpServlet {
+    private BlogPostDAO blogPostDAO;
+
+    @Override
+    public void init() throws ServletException {
+        // Initialize the DAO with the database connection
+        // Here, you can establish the database connection using JDBC or a connection pool
+        // For simplicity, let's assume you have a connection object called "connection"
+        blogPostDAO = new BlogPostDAO(connection);
+    }
+
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        try {
+            // Retrieve all blog posts from the database
+            List<BlogPost> blogPosts = blogPostDAO.getAllBlogPosts();
+
+            // Forward the blog post data to a JSP for display
+            request.setAttribute("blogPosts", blogPosts);
+            request.getRequestDispatcher("/WEB-INF/views/viewAllBlogPosts.jsp").forward(request, response);
+        } catch (SQLException e) {
+            // Handle any exceptions appropriately
+            e.printStackTrace();
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
