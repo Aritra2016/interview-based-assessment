@@ -1,1 +1,638 @@
+Q-21). Create a Spring Boot application that inserts data into a MySQL database table using
+JPA and Hibernate. The application should use Spring Data JPA to map the table to a
+Java object and then insert the data into the table.
+
+
+spring.datasource.url=jdbc:mysql://localhost:3306/your_database_name
+spring.datasource.username=root
+spring.datasource.password=Mysql22@
+spring.jpa.hibernate.ddl-auto=update
+
+
+
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+
+@Entity
+public class User {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+    private String email;
+
+    // Constructors, getters, setters
+}
+
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface UserRepository extends JpaRepository<User, Long> {
+
+
+
+}
+
+
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+@Service
+public class UserService {
+    private final UserRepository userRepository;
+
+    @Autowired
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
+    public void saveUser(User user) {
+        userRepository.save(user);
+    }
+}
+
+
+
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class UserController {
+    private final UserService userService;
+
+    @Autowired
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
+
+    @PostMapping("/users")
+    public void insertUser(@RequestBody User user) {
+        userService.saveUser(user);
+    }
+}
+
+
+
+Q-22) Create a Spring Boot application that uses Spring Data JPA to retrieve data from a database. The application should have entities for users and orders, and should
+allow for querying orders by user.
+
+spring.datasource.url=jdbc:mysql://localhost:3306/your_database_name
+spring.datasource.username=root
+spring.datasource.password=Mysql22@
+spring.jpa.hibernate.ddl-auto=update
+
+
+
+import javax.persistence.*;
+
+@Entity
+public class User {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+    private String email;
+
+    // Constructors, getters, setters
+}
+
+
+
+import javax.persistence.*;
+
+@Entity
+public class Order {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    
+    private Long id;
+    private String productName;
+    private double amount;
+    
+    
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+
+  public String getId() {
+        return data1;
+    }
+
+    public void setId(String id) {
+        this.data1 = data1;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id= id;
+    }
+
+   
+
+    @Override
+    public String toString() {
+        return "DataEntity{" + " id='" + id + '\'' + ", productName='" + producName + amount ='" + amount + '\'' +
+                ", '}';
+    } 
+    
+    
+}
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface UserRepository extends JpaRepository<User, Long> {
+}
+
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
+
+public interface OrderRepository extends JpaRepository<Order, Long> {
+    List<Order> findByUser(User user);
+}
+
+
+
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
+import java.util.List;
+
+@RestController
+public class OrderController {
+    private final OrderRepository orderRepository;
+
+    @Autowired
+    public OrderController(OrderRepository orderRepository) {
+        this.orderRepository = orderRepository;
+    }
+
+    @GetMapping("/orders/user/{userId}")
+    public List<Order> getOrdersByUserId(@PathVariable Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid user ID: " + userId));
+
+        return orderRepository.findByUser(user);
+    }
+}
+
+
+
+Q-23) Create a Spring MVC application that allows users to register and login. The
+application should have a registration form that accepts user details and a login form
+that authenticates users.
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Autowired
+    private CustomUserDetailsService userDetailsService;
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http
+            .authorizeRequests()
+                .antMatchers("/registration").permitAll()
+                .anyRequest().authenticated()
+                .and()
+            .formLogin()
+                .loginPage("/login")
+                .defaultSuccessUrl("/home")
+                .permitAll()
+                .and()
+            .logout()
+                .permitAll();
+    }
+
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.userDetailsService(userDetailsService);
+    }
+}
+
+
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+
+@Controller
+public class UserController {
+
+    @Autowired
+    private UserService userService;
+
+    @GetMapping("/registration")
+    public String showRegistrationForm(Model model) {
+        model.addAttribute("user", new User());
+        return "registration";
+    }
+
+    @PostMapping("/registration")
+    public String registerUser(@ModelAttribute("user") User user) {
+        userService.register(user);
+        return "redirect:/login";
+    }
+}
+
+
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Service;
+
+@Service
+public class UserService {
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
+
+    public void register(User user) {
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        userRepository.save(user);
+    }
+}
+
+
+
+import org.springframework.data.repository.CrudRepository;
+
+public interface UserRepository extends CrudRepository<User, Long> {
+    User findByUsername(String username);
+}
+
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>User Registration</title>
+</head>
+<body>
+    <h2>User Registration</h2>
+    <form action="#" th:action="@{/registration}" th:object="${user}" method="post">
+        <label for="username">Username:</label>
+        <input type="text" id="username" th:field="*{username}" required/>
+        <br/>
+        <label for="password">Password:</label>
+        <input type="password" id="password" th:field="*{password}" required/>
+        <br/>
+        <button type="submit">Register</button>
+    </form>
+</body>
+</html>
+
+
+
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+
+@Controller
+public class LoginController {
+
+    @GetMapping("/login")
+    public String showLoginForm() {
+        return "login";
+    }
+}
+
+
+
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>User Login</title>
+</head>
+<body>
+    <h2>User Login</h2>
+    <form action="#" th:action="@{/login}" method="post">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required/>
+        <br/>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required/>
+        <br/>
+        <button type="submit">Login</button>
+    </form>
+</body>
+</html>
+
+
+
+
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>User Registration</title>
+</head>
+<body>
+    <h2>User Registration</h2>
+    <form action="#" th:action="@{/registration}" th:object="${user}" method="post">
+        <label for="username">Username:</label>
+        <input type="text" id="username" th:field="*{username}" required/>
+        <br/>
+        <label for="password">Password:</label>
+        <input type="password" id="password" th:field="*{password}" required/>
+        <br/>
+        <button type="submit">Register</button>
+    </form>
+</body>
+</html>
+
+
+
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title> ser Login </title>
+</head>
+<body>
+    <h2>User Login</h2>
+    <form action="#" th:action="@{/login}" method="post">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required/>
+        <br/>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required/>
+        <br/>
+        <button type="submit">Login</button>
+    </form>
+</body>
+</html>
+
+
+
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+@Configuration
+public class WebConfig implements WebMvcConfigurer {
+
+    @Override
+    public void addViewControllers(ViewControllerRegistry registry) {
+        registry.addViewController("/").setViewName("home");
+        registry.addViewController("/login").setViewName("login");
+        registry.addViewController("/registration").setViewName("registration");
+    }
+}
+
+
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Home</title>
+</head>
+<body>
+    <h2>Welcome to the Home Page</h2>
+</body>
+</html>
+
+
+
+
+Q-24)   Create a Spring Boot application that uses Spring MVC to create a REST API. The API should accept a JSON request with data and insert it into a MySQL database
+table using JPA and Hibernate. The application should use Spring Data JPA to map the table to a Java object and then insert the data into the table.
+
+
+spring.datasource.url=jdbc:mysql://localhost:3306/your_database_name
+spring.datasource.username=root
+spring.datasource.password=Mysql22@
+spring.jpa.hibernate.ddl-auto=update
+
+
+
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+
+@Entity
+public class DataEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String data1;
+    private String data2;
+
+    // Getters and setters
+    
+       public String getData1() {
+        return data1;
+    }
+
+    public void setData1(String data1) {
+        this.data1 = data1;
+    }
+
+    public String getData1() {
+        return data1;
+    }
+
+    public void setData1(String data1) {
+        this.data1 = data1;
+    }
+
+   
+
+    @Override
+    public String toString() {
+        return "DataEntity{" + "data1='" + data1 + '\'' + ", data2='" + data2 + '}';
+    } 
+    
+    
+    
+}
+
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface DataEntityRepository extends JpaRepository<DataEntity, Long> {
+}
+
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class DataController {
+
+    @Autowired
+    private DataEntityRepository dataEntityRepository;
+
+    @PostMapping("/data")
+    public DataEntity insertData(@RequestBody DataEntity dataEntity) {
+        return dataEntityRepository.save(dataEntity);
+    }
+}
+
+
+
+
+Q-25) Create a Spring Boot application that uses Spring AOP to log method calls. The
+application should have a service class with methods that perform operations. The
+application should use Spring AOP to log the method calls with input and output
+parameters to the console.
+
+
+<!-- Add Spring Boot dependencies -->
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter</artifactId>
+    </dependency>
+
+    <!-- Add Spring AOP dependency -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-aop</artifactId>
+    </dependency>
+</dependencies>
+
+
+
+import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.annotation.AfterReturning;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
+import org.springframework.stereotype.Component;
+
+@Aspect
+@Component
+public class LoggingAspect {
+
+    @Before("execution(* com.example.demo.service.*.*(..))")
+    public void logMethodCall(JoinPoint joinPoint) {
+        String className = joinPoint.getTarget().getClass().getSimpleName();
+        String methodName = joinPoint.getSignature().getName();
+        Object[] arguments = joinPoint.getArgs();
+
+        System.out.println("Executing method: " + className + "." + methodName);
+        System.out.println("Arguments: " + Arrays.toString(arguments));
+    }
+
+    @AfterReturning(
+            pointcut = "execution(* com.example.demo.service.*.*(..))",
+            returning = "result"
+    )
+    public void logMethodReturn(JoinPoint joinPoint, Object result) {
+        String className = joinPoint.getTarget().getClass().getSimpleName();
+        String methodName = joinPoint.getSignature().getName();
+
+        System.out.println("Method executed: " + className + "." + methodName);
+        System.out.println("Returned value: " + result);
+    }
+}
+
+
+
+
+import org.springframework.stereotype.Service;
+
+@Service
+public class SampleService {
+
+    public int add(int a, int b) {
+        return a + b;
+    }
+
+    public String concatenate(String str1, String str2) {
+        return str1 + str2;
+    }
+}
+
+
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class DemoApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(DemoApplication.class, args);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
