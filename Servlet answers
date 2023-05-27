@@ -1,0 +1,438 @@
+Q-16) Create a Java servlet that uses session management to maintain the state of the
+user across multiple requests. The servlet should store the user's name in a session
+object and display it on multiple pages of the web application.
+
+
+// Servlet class that handles the user's requests and responses
+public class UserServlet extends HttpServlet {
+
+    // Override the doGet method to handle GET requests
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // Get the user's name from the request parameter
+        String name = request.getParameter("name");
+
+        // Get the session object from the request
+        HttpSession session = request.getSession();
+
+        // Check if the user's name is already stored in the session
+        if (session.getAttribute("name") == null) {
+            // If not, store the user's name in the session
+            session.setAttribute("name", name);
+        } else {
+            // If yes, get the user's name from the session
+            name = (String) session.getAttribute("name");
+        }
+
+        // Set the content type of the response to text/html
+        response.setContentType("text/html");
+
+        // Get the print writer object from the response
+        PrintWriter out = response.getWriter();
+
+        // Write the HTML code to display the user's name on multiple pages
+        out.println("<html>");
+        out.println("<head>");
+        out.println("<title>User Servlet</title>");
+        out.println("</head>");
+        out.println("<body>");
+        out.println("<h1>Welcome, " + name + "</h1>");
+        out.println("<p>This is page 1.</p>");
+        out.println("<a href='UserServlet?page=2'>Go to page 2</a>");
+        out.println("</body>");
+        out.println("</html>");
+
+        // Close the print writer object
+        out.close();
+    }
+
+    // Override the doPost method to handle POST requests
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // Get the page number from the request parameter
+        String page = request.getParameter("page");
+
+        // Get the session object from the request
+        HttpSession session = request.getSession();
+
+        // Get the user's name from the session
+        String name = (String) session.getAttribute("name");
+
+        // Set the content type of the response to text/html
+        response.setContentType("text/html");
+
+        // Get the print writer object from the response
+        PrintWriter out = response.getWriter();
+
+        // Write the HTML code to display the user's name on multiple pages
+        out.println("<html>");
+        out.println("<head>");
+        out.println("<title>User Servlet</title>");
+        out.println("</head>");
+        out.println("<body>");
+        out.println("<h1>Welcome back, " + name + "</h1>");
+        
+        if (page.equals("2")) {
+            // Display page 2 content
+            out.println("<p>This is page 2.</p>");
+            out.println("<a href='UserServlet?page=3'>Go to page 3</a>");
+            
+        } else if (page.equals("3")) {
+            // Display page 3 content
+            out.println("<p>This is page 3.</p>");
+            out.println("<a href='UserServlet?page=1'>Go back to page 1</a>");
+            
+        } else {
+            // Display error message for invalid page number
+            out.println("<p>Invalid page number.</p>");
+            out.println("<a href='UserServlet?page=1'>Go back to page 1</a>");
+            
+        }
+        
+        out.println("</body>");
+        out.println("</html>");
+
+        // Close the print writer object
+        out.close();
+    }
+}
+
+
+
+Q-17) Create a web application that lets users create and view blog posts. The web
+application should use the MVC pattern, with servlets as controllers, JSPs as views,
+and a database as the model. Users should be able to create new blog posts by
+filling out a form that includes a title, description, and content. The web application
+should use a servlet to store the blog post data in the database. Users should also be
+able to view all the blog posts on a separate page, and the web application should
+use a servlet to retrieve the blog post data from the database and display it in a
+formatted way.
+
+
+// Servlet class that handles the requests and responses for creating new blog posts
+public class CreatePostServlet extends HttpServlet {
+
+    // Override the doGet method to display the form for creating new blog posts
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // Set the content type of the response to text/html
+        response.setContentType("text/html");
+
+        // Get the print writer object from the response
+        PrintWriter out = response.getWriter();
+
+        // Write the HTML code to display the form for creating new blog posts
+        out.println("<html>");
+        out.println("<head>");
+        out.println("<title>Create Post</title>");
+        out.println("</head>");
+        out.println("<body>");
+        out.println("<h1>Create a new blog post</h1>");
+        out.println("<form action='CreatePostServlet' method='post'>");
+        out.println("Title: <input type='text' name='title' required><br>");
+        out.println("Description: <input type='text' name='description' required><br>");
+        out.println("Content: <textarea name='content' rows='10' cols='50' required></textarea><br>");
+        out.println("<input type='submit' value='Create'>");
+        out.println("</form>");
+        out.println("</body>");
+        out.println("</html>");
+
+        // Close the print writer object
+        out.close();
+    }
+
+    // Override the doPost method to handle the form submission and store the blog post data in the database
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // Get the blog post data from the request parameters
+        String title = request.getParameter("title");
+        String description = request.getParameter("description");
+        String content = request.getParameter("content");
+
+        // Create a connection object to connect to the database
+        Connection conn = null;
+
+        try {
+            // Load the JDBC driver class
+            Class.forName("com.mysql.cj.jdbc.Driver");
+
+            // Get the connection object from the driver manager with the database URL, username, and password
+            conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/blog_db", "root", "password");
+
+            // Create a prepared statement object to execute SQL queries with parameters
+            PreparedStatement pstmt = null;
+
+            // Write the SQL query to insert a new blog post into the posts table
+            String sql = "INSERT INTO posts (title, description, content) VALUES (?, ?, ?)";
+
+            // Get the prepared statement object from the connection object with the SQL query
+            pstmt = conn.prepareStatement(sql);
+
+            // Set the values for the parameters in the SQL query
+            pstmt.setString(1, title);
+            pstmt.setString(2, description);
+            pstmt.setString(3, content);
+
+            // Execute the SQL query and get the number of rows affected
+            int rows = pstmt.executeUpdate();
+
+            // Check if the insertion was successful
+            if (rows > 0) {
+                // Display a success message and a link to view all blog posts
+                response.setContentType("text/html");
+                PrintWriter out = response.getWriter();
+                out.println("<html>");
+                out.println("<head>");
+                out.println("<title>Create Post</title>");
+                out.println("</head>");
+                out.println("<body>");
+                out.println("<h1>Blog post created successfully</h1>");
+                out.println("<a href='ViewPostsServlet'>View all blog posts</a>");
+                out.println("</body>");
+                out.println("</html>");
+                out.close();
+            } else {
+                // Display an error message and a link to go back to the form
+                response.setContentType("text/html");
+                PrintWriter out = response.getWriter();
+                out.println("<html>");
+                out.println("<head>");
+                out.println("<title>Create Post</title>");
+                out.println("</head>");
+                out.println("<body>");
+                out.println("<h1>Blog post creation failed</h1>");
+                out.println("<a href='CreatePostServlet'>Go back to create post</a>");
+                out.println("</body>");
+                out.println("</html>");
+                out.close();
+            }
+
+            // Close the prepared statement object
+            pstmt.close();
+
+        } catch (Exception e) {
+            // Handle any exceptions that may occur
+            e.printStackTrace();
+        } finally {
+            // Close the connection object if it is not null
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+}
+
+// Servlet class that handles the requests and responses for viewing all blog posts
+public class ViewPostsServlet extends HttpServlet {
+
+    // Override the doGet method to display all blog posts from the database in a formatted way
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // Create a connection object to connect to the database
+        Connection conn = null;
+
+        try {
+            // Load the JDBC driver class
+            Class.forName("com.mysql.cj.jdbc.Driver");
+
+            // Get the connection object from the driver manager with the database URL, username, and password
+            conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/blog_db", "root", "password");
+
+            // Create a statement object to execute SQL queries without parameters
+            Statement stmt = null;
+
+            // Write the SQL query to select all blog posts from the posts table
+            String sql = "SELECT * FROM posts";
+
+            // Get the statement object from the connection object with the SQL query
+            stmt = conn.createStatement();
+
+            // Execute the SQL query and get the result set object that contains the data returned by the query
+            ResultSet rs = stmt.executeQuery(sql);
+
+            // Set the content type of the response to text/html
+            response.setContentType("text/html");
+
+            // Get the print writer object from the response
+            PrintWriter out = response.getWriter();
+
+            // Write
+
+the HTML code to display all blog posts in a formatted way
+
+out.println("<html>");
+
+out.println("<head>");
+
+out.println("<title>View Posts</title>");
+
+out.println("</head>");
+
+out.println("<body>");
+
+out.println("<h1>All blog posts</h1>");
+
+out.println("<table border='1'>");
+
+out.println("<tr>");
+
+out.println("<th>Title</th>");
+
+out.println("<th>Description</th>");
+
+out.println("<th>Content</th>");
+
+out.println("</tr>");
+
+// Loop through each row in
+
+the result set
+
+while (rs.next()) {
+
+// Get
+
+the values for each column in
+
+the current row
+
+String title = rs.getString("title");
+
+String description = rs.getString("description");
+
+String content = rs.getString("content");
+
+// Write
+
+a table row with
+
+the values
+
+out.println("<tr>");
+
+out.println("<td>" + title + "</td>");
+
+out.println("<td>" + description + "</td>");
+
+out.println("<td>" + content + "</td>");
+
+out.println("</tr>");
+
+}
+
+// Close
+
+the table tag
+
+out.println("</table>");
+
+// Close
+
+the body and html tags
+
+out.println("</body>");
+
+out.println("</html>");
+
+// Close
+
+the print writer object
+
+out.close();
+
+// Close
+
+the result set object
+
+rs.close();
+
+// Close
+
+the statement object
+
+stmt.close();
+
+} catch (Exception e) {
+
+// Handle any exceptions that may occur
+
+e.printStackTrace();
+
+} finally {
+
+// Close
+
+the connection object if it is not null
+
+if (conn != null) {
+
+try {
+
+conn.close();
+
+} catch (SQLException e) {
+
+e.printStackTrace();
+
+}
+
+}
+
+}
+
+}
+
+}
+
+// JSP file that displays a link to create a new blog post or view all blog posts
+
+<html>
+
+<head>
+
+<title>Blog App</title>
+
+</head>
+
+<body>
+
+<h1>Welcome to Blog App</h1>
+
+<p>This is a simple web application that lets you create and view blog posts.</p>
+
+<a href="CreatePostServlet">Create a new blog post</a>
+
+<br>
+
+<a href="ViewPostsServlet">View all blog posts</a>
+
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
